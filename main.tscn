@@ -1,0 +1,125 @@
+[gd_scene load_steps=8 format=3 uid="uid://c8qxm4yfvwnh5"]
+
+[ext_resource type="Script" uid="uid://cklxfgjw6355k" path="res://main.gd" id="1_3r8yh"]
+[ext_resource type="AudioStream" uid="uid://bnqld44ixjh4f" path="res://sounds/click.ogg" id="2_lquwl"]
+[ext_resource type="AudioStream" uid="uid://c3h64vsymtwn5" path="res://sounds/eat.ogg" id="3_7mycd"]
+[ext_resource type="AudioStream" uid="uid://ccpr8r7hd1liv" path="res://sounds/gain.ogg" id="4_272bh"]
+[ext_resource type="AudioStream" uid="uid://dl5u7cg8si6dx" path="res://sounds/game-die.ogg" id="5_5vw27"]
+[ext_resource type="Texture2D" uid="uid://j1lh3601xa5h" path="res://bug_meadow_backgrouns.png" id="6_7mycd"]
+[ext_resource type="AudioStream" uid="uid://b2iucd5ak0ukq" path="res://sounds/main_music.ogg" id="7_272bh"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_3r8yh")
+
+[node name="BugMeadowBackgrouns" type="Sprite2D" parent="."]
+z_index = -10
+position = Vector2(485, 321)
+scale = Vector2(0.79785156, 0.79785156)
+texture = ExtResource("6_7mycd")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 800.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Level 1 | Glucose: 5 | Fat: 0 | Move: 5 | Goal: 0/10 food"
+
+[node name="TutorialPanel" type="Panel" parent="UI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -140.0
+offset_right = 320.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TutorialLabel" type="Label" parent="UI/TutorialPanel"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -60.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "You're the blue bug. Collect the green food. Avoid green enemies. Glucose is your energy: you spend it to move, and you get more by eating food! You can only hold 5 glucose at once, and if you run out of glucose, the level is over."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="CloseButton" type="Button" parent="UI/TutorialPanel"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -60.0
+offset_top = -45.0
+offset_right = 60.0
+offset_bottom = -15.0
+text = "Close"
+
+[node name="LevelCompletePanel" type="Panel" parent="UI"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -100.0
+offset_right = 200.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="UI/LevelCompletePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 32
+text = "Level Complete!
+Click to continue"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CloseButton" type="Button" parent="UI/LevelCompletePanel"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -34.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = 34.0
+text = "X"
+
+[node name="sound_click" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_lquwl")
+
+[node name="sound_eat" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_7mycd")
+
+[node name="sound_convert" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_272bh")
+
+[node name="sound_death" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_5vw27")
+
+[node name="music" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_272bh")
+autoplay = true
+mix_target = 1
