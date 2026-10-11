@@ -36,5 +36,5 @@ This file is the single copy of the project conventions; AGENTS.md only points h
 
 ## Site readiness (sims.mr-miner.com)
 - Keyboard code (Tab order, Escape, `sims:leave-game`, arrow/WASD moves) is in `main.gd`: `handle_key()` and `tab_controls()`. Tab stops are the open panel's button, then the Music switch.
-- Web export uses the **2D + GUI** template, not the 2D one: the 2D zip failed to load `.ogg` ("No loader found ... oggvorbisstr") in Chrome. Music is silent until the first click/key (`start_audio()`); no autoplay.
+- Web export uses the **2D** template (rebuilt 2026-10-10 with Ogg Vorbis; the earlier 2D zip failed to load every `.ogg` in Chrome). Music is silent until the first click/key (`start_audio()`); no autoplay.
 - Export: preset "Web" -> `../exports/bug-metabolism/index.html`; browser test copy lives in the supervising session's scratchpad (`webtest-bug`).

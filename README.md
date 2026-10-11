@@ -27,7 +27,7 @@ Play as a small bug organism that must collect food while managing glucose and f
 - [x] No emoji or symbol glyphs; no flashing; information never by colour alone (spiders have legs, food is a plain dot, numbers are in the HUD)
 - [x] Scales to small frames (960x640 base, canvas_items, expand)
 - [x] Web export (2D + GUI custom template, single-threaded) and headless tests (`tests/run_all_tests.sh`)
-- [ ] Licence for `sounds/main_music.ogg` (unknown)
+- [x] Credits: sound effects in `sounds/credits.txt` (Pixabay); `main_music.ogg` is a Pixabay track (converted from `GameAssets/sounds/main_music.mp3`; the track's name was not recorded); the background image is AI-generated (GPT), no credit
 
 ## Game Mechanics
 
