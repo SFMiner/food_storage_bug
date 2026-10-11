@@ -17,12 +17,12 @@ This file is the single copy of the project conventions; AGENTS.md only points h
 
 ## Coding Style & Naming Conventions
 - Language: GDScript.
-- Indentation: 4 spaces; keep blank lines between logical sections.
+- Indentation: tabs; keep blank lines between logical sections.
 - Naming: `snake_case` for variables and functions, `UPPER_SNAKE_CASE` for constants.
 - Scene nodes are referenced via `$NodePath` and `@onready` for cached lookups.
 
 ## Testing Guidelines
-- No automated tests are currently defined.
+- Headless tests: `GODOT=<godot 4.5 exe> bash tests/run_all_tests.sh` (`test_keyboard.gd`, `test_smoke.gd`).
 - Manual testing checklist: run Level 1 and Level 2, confirm food collection, enemy patrols, glucose/fat rules, and death/level reset behavior.
 
 ## Commit & Pull Request Guidelines
@@ -33,3 +33,8 @@ This file is the single copy of the project conventions; AGENTS.md only points h
 ## Configuration & Assets
 - Sound effects are optional; place files in `sounds/` using the names in `sounds/README.md`.
 - Keep constants for tuning gameplay at the top of `main.gd`.
+
+## Site readiness (sims.mr-miner.com)
+- Keyboard code (Tab order, Escape, `sims:leave-game`, arrow/WASD moves) is in `main.gd`: `handle_key()` and `tab_controls()`. Tab stops are the open panel's button, then the Music switch.
+- Web export uses the **2D + GUI** template, not the 2D one: the 2D zip failed to load `.ogg` ("No loader found ... oggvorbisstr") in Chrome. Music is silent until the first click/key (`start_audio()`); no autoplay.
+- Export: preset "Web" -> `../exports/bug-metabolism/index.html`; browser test copy lives in the supervising session's scratchpad (`webtest-bug`).

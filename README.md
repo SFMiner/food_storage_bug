@@ -8,8 +8,26 @@ Play as a small bug organism that must collect food while managing glucose and f
 
 ## Controls
 
+- **Arrow keys / WASD** - Jump up to your maximum distance in that direction (costs 1 glucose, like a click); hold **Shift** for a single step
+- **Tab / Shift+Tab** - Move between the on-screen buttons (the Music switch and the open panel's button); **Enter/Space** presses one
+- **Escape** - Closes the open panel; with nothing open it leaves the game (sims site)
 - **Click/Touch** - Move to the clicked location (up to your maximum movement distance)
 - The bug will automatically path toward your clicked location, stopping at the maximum distance if needed
+
+## Feature checklist
+
+- [x] Level 1: glucose only, collect 10 food
+- [x] Level 2: fat storage, slowdown and auto-conversion
+- [x] Spider patrols, death and restart
+- [x] Click / touch movement
+- [x] Keyboard movement (arrows / WASD) with an on-screen hint
+- [x] Tab order and visible yellow focus outline on every button
+- [x] Escape / Tab-past-the-ends send `sims:leave-game` to the sims site
+- [x] Music waits for the first click or key; Music On/Off switch
+- [x] No emoji or symbol glyphs; no flashing; information never by colour alone (spiders have legs, food is a plain dot, numbers are in the HUD)
+- [x] Scales to small frames (960x640 base, canvas_items, expand)
+- [x] Web export (2D + GUI custom template, single-threaded) and headless tests (`tests/run_all_tests.sh`)
+- [ ] Licence for `sounds/main_music.ogg` (unknown)
 
 ## Game Mechanics
 
@@ -100,7 +118,7 @@ The game supports sound effects but works perfectly without them. See `sounds/RE
 - **Engine**: Godot 4.5
 - **Language**: GDScript
 - **Rendering**: GL Compatibility (works on web and mobile)
-- **Resolution**: 1200x800 (canvas_items stretch mode)
+- **Resolution**: 960x640 (canvas_items stretch mode)
 - **Grid**: Invisible grid system with visual cell rendering
 
 ## Educational Value

@@ -17,6 +17,8 @@ const PLAYER_JUMP_DURATION = 0.2
 const PLAYER_JUMP_HEIGHT = 10.0
 const ENEMY_SPEED_CELLS_PER_SEC = 3.0
 const GRID_ALPHA = 0.0
+const FOCUS_COLOR: Color = Color(1.0, 0.85, 0.2)
+const HINT_TEXT: String = "Move: arrow keys or WASD (hold Shift for 1 step), or click  |  Tab: buttons  |  Esc: leave"
 
 # ============ GAME STATE ============
 var current_level = 1
@@ -35,6 +37,13 @@ var player_is_moving = false
 var enemies_moving = false
 var tutorial_active = true
 var tutorial_shown = false
+var is_dying: bool = false
+var music_on: bool = true
+var audio_started: bool = false
+## Times the keyboard left the game; read by tests/test_keyboard.gd.
+var leave_count: int = 0
+var music_button: Button = null
+var hint_label: Label = null
 
 # ============ ENTITIES ============
 var food_positions = []
@@ -53,6 +62,7 @@ var enemies = []  # Array of {pos: Vector2i, path: Array[Vector2i], path_index: 
 @onready var sound_eat: AudioStreamPlayer = $sound_eat
 @onready var sound_convert: AudioStreamPlayer = $sound_convert
 @onready var sound_death: AudioStreamPlayer = $sound_death
+@onready var music: AudioStreamPlayer = $music
 
 # ============================================
 # INITIALIZATION
@@ -62,6 +72,7 @@ func _ready():
 	randomize()
 	setup_camera()
 	setup_ui()
+	setup_keyboard()
 	close_button.pressed.connect(_on_level_complete_close_pressed)
 	tutorial_close_button.pressed.connect(_on_tutorial_close_pressed)
 	if tutorial_shown:
@@ -71,6 +82,7 @@ func _ready():
 	else:
 		set_process(false)
 		tutorial_panel.show()
+		tutorial_close_button.grab_focus()
 		update_ui()
 
 func setup_camera():
@@ -91,6 +103,117 @@ func play_sound(player: AudioStreamPlayer):
 func setup_ui():
 	level_complete_panel.hide()
 
+func setup_keyboard() -> void:
+	var ring: StyleBoxFlat = StyleBoxFlat.new()
+	ring.draw_center = false
+	ring.border_color = FOCUS_COLOR
+	ring.set_border_width_all(3)
+	ring.set_corner_radius_all(3)
+	ring.set_expand_margin_all(2.0)
+	music_button = Button.new()
+	music_button.name = "MusicButton"
+	music_button.position = Vector2(814, 596)
+	music_button.size = Vector2(130, 36)
+	music_button.pressed.connect(_on_music_pressed)
+	$UI.add_child(music_button)
+	update_music_button()
+	hint_label = Label.new()
+	hint_label.name = "HintLabel"
+	hint_label.position = Vector2(14, 604)
+	hint_label.size = Vector2(790, 28)
+	hint_label.text = HINT_TEXT
+	hint_label.add_theme_font_size_override("font_size", 16)
+	hint_label.add_theme_color_override("font_color", Color(1, 1, 1))
+	hint_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	hint_label.add_theme_constant_override("outline_size", 6)
+	hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$UI.add_child(hint_label)
+	for b: Button in [music_button, tutorial_close_button, close_button]:
+		b.focus_mode = Control.FOCUS_ALL
+		b.add_theme_stylebox_override("focus", ring)
+
+func update_music_button() -> void:
+	music_button.text = "Music: On" if music_on else "Music: Off"
+
+func _on_music_pressed() -> void:
+	music_on = not music_on
+	update_music_button()
+	if music_on and audio_started:
+		music.play()
+	else:
+		music.stop()
+
+## Music waits for the first click or key press (browsers block sound before that, and nothing should start unasked).
+func start_audio() -> void:
+	if audio_started:
+		return
+	audio_started = true
+	if music_on and music.stream:
+		music.play()
+
+## Controls the Tab key walks, in order: the open panel's button first, then the music switch.
+func tab_controls() -> Array[Control]:
+	var list: Array[Control] = []
+	if tutorial_panel.visible:
+		list.append(tutorial_close_button)
+	elif level_complete_panel.visible:
+		list.append(close_button)
+	list.append(music_button)
+	return list
+
+## Drops focus and asks the sims site's play page to take the keyboard back. On its own page there is no parent.
+func leave_game() -> void:
+	get_viewport().gui_release_focus()
+	leave_count += 1
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("if (window.parent !== window) window.parent.postMessage({type: 'sims:leave-game'}, location.origin)")
+
+## Handles Escape, Tab, Shift+Tab and movement keys. Returns true when the key was used.
+func handle_key(event: InputEventKey) -> bool:
+	if event.is_action_pressed("ui_cancel"):
+		# Escape closes the open panel first, and leaves only when nothing is open
+		if tutorial_active:
+			_on_tutorial_close_pressed()
+		elif level_complete_panel.visible:
+			_on_level_complete_clicked()
+		else:
+			leave_game()
+		return true
+	# Exact match (third argument): without it ui_focus_next also matches Shift+Tab
+	var forward: bool = event.is_action_pressed("ui_focus_next", true, true)
+	var backward: bool = event.is_action_pressed("ui_focus_prev", true, true)
+	if forward or backward:
+		var controls: Array[Control] = tab_controls()
+		var idx: int = controls.find(get_viewport().gui_get_focus_owner())
+		if idx < 0:
+			controls[0 if forward else controls.size() - 1].grab_focus()
+		elif (forward and idx == controls.size() - 1) or (backward and idx == 0):
+			leave_game()
+		else:
+			controls[idx + (1 if forward else -1)].grab_focus()
+		return true
+	if tutorial_active or level_complete_panel.visible:
+		return false
+	var dir: Vector2i = Vector2i.ZERO
+	match event.physical_keycode:
+		KEY_UP, KEY_W:
+			dir = Vector2i.UP
+		KEY_DOWN, KEY_S:
+			dir = Vector2i.DOWN
+		KEY_LEFT, KEY_A:
+			dir = Vector2i.LEFT
+		KEY_RIGHT, KEY_D:
+			dir = Vector2i.RIGHT
+	if dir == Vector2i.ZERO:
+		return false
+	if not event.echo and not player_is_moving and not is_dying:
+		var steps: int = 1 if event.shift_pressed else max_movement
+		var target: Vector2i = player_pos + dir * steps
+		target.x = clampi(target.x, 0, GRID_WIDTH - 1)
+		target.y = clampi(target.y, 0, GRID_HEIGHT - 1)
+		try_move_to(target)
+	return true
+
 # ============================================
 # LEVEL MANAGEMENT
 # ============================================
@@ -105,6 +228,7 @@ func start_level(level: int):
 	player_move_elapsed = 0.0
 	player_visual_pos = tile_to_world(player_pos)
 	enemies_moving = false
+	is_dying = false
 	
 	food_positions.clear()
 	enemies.clear()
@@ -247,13 +371,14 @@ func check_level_complete() -> bool:
 
 func complete_level():
 	if current_level == 1:
-		show_level_complete_message("Level 1 Complete!\nClick to continue to Level 2")
+		show_level_complete_message("Level 1 Complete!\nClick or press Enter to continue to Level 2")
 	else:
-		show_level_complete_message("You've won! You've eaten enough food to store it as fat.\n\nDid you notice any advantage to having fat in addition to glucose?\nClick to restart")
+		show_level_complete_message("You've won! You've eaten enough food to store it as fat.\n\nDid you notice any advantage to having fat in addition to glucose?\nClick or press Enter to restart")
 
 func show_level_complete_message(message: String):
 	level_complete_panel.get_node("Label").text = message
 	level_complete_panel.show()
+	close_button.grab_focus()
 
 func _on_level_complete_clicked():
 	level_complete_panel.hide()
@@ -277,10 +402,17 @@ func _on_tutorial_close_pressed():
 # ============================================
 
 func _input(event):
+	if event is InputEventKey and event.pressed:
+		start_audio()
+		if handle_key(event):
+			get_viewport().set_input_as_handled()
+			return
+	if event is InputEventMouseButton and event.pressed:
+		start_audio()
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if tutorial_active:
 			return
-		if player_is_moving:
+		if player_is_moving or is_dying:
 			return
 		if level_complete_panel.visible:
 			_on_level_complete_clicked()
@@ -297,6 +429,8 @@ func _input(event):
 			try_move_to(target_pos)
 
 func try_move_to(target_pos: Vector2i):
+	if is_dying:
+		return
 	if glucose <= 0:
 		player_death()
 		return  # Can't move without glucose
@@ -432,6 +566,9 @@ func check_enemy_collision() -> bool:
 	return false
 
 func player_death():
+	if is_dying:
+		return
+	is_dying = true
 	play_sound(sound_death)
 	await get_tree().create_timer(0.5).timeout
 	start_level(current_level)  # Restart current level
